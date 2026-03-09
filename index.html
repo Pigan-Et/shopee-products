@@ -2,40 +2,51 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>摩配选品工具</title>
+    <title>摩配热销原品清单</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .filter-section { background: white; padding: 20px; border-radius: 12px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e1e4e8; transition: 0.3s; position: relative; }
-        .card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: #ee4d2d; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        /* 说明区域：方便随时修改文字 */
+        .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; }
+        
+        .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         
         /* P0/P1 标签 */
-        .judge-tag { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .judge-tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 10; }
         .bg-p0 { background: #d4edda; color: #155724; }
         .bg-p1 { background: #d1ecf1; color: #0c5460; }
+
+        .img-container { width: 100%; height: 220px; background: #fff; overflow: hidden; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
+        .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
         
-        .img-container { height: 180px; display: flex; align-items: center; justify-content: center; background: #f9f9f9; }
-        .img-container img { max-width: 90%; max-height: 90%; object-fit: contain; }
-        .info { padding: 15px; }
-        .price { color: #ff5722; font-size: 22px; font-weight: 800; }
-        .btn-jump { background: #eee; padding: 5px 10px; border-radius: 4px; text-decoration: none; color: #333; font-size: 12px; }
-        .btn-jump:hover { background: #ddd; }
-        .invite-id { background: #fff1f0; color: #d9363e; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; cursor: pointer; margin: 10px 0; border: 1px dashed #ffa39e; }
+        .info { padding: 15px; flex-grow: 1; }
+        .title { font-weight: bold; font-size: 14px; margin-bottom: 10px; height: 40px; overflow: hidden; }
+        .price { color: #ee4d2d; font-size: 22px; font-weight: bold; }
+        .btn-link { font-size: 12px; color: #555; text-decoration: underline; cursor: pointer; }
+        .invite-id { background: #fff5f1; border: 1px dashed #ee4d2d; padding: 8px; border-radius: 4px; text-align: center; color: #ee4d2d; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="color:#333;"><h1>🏍️ 摩配选品看板</h1></header>
-    
+    <header>
+        <h1>🏍️ 摩配热销原品清单</h1>
+        <div class="desc-box">【说明：每日更新核心选品数据，请买手优先关注P0等级及最新日期。】</div>
+    </header>
+
     <div class="filter-section">
         <input type="text" id="searchInput" placeholder="搜索标题..." oninput="applyFilters()">
         <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
         <input type="number" id="minPrice" placeholder="最低价" oninput="applyFilters()">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="applyFilters()">
         <select id="sortOrder" onchange="applyFilters()">
-            <option value="default">默认</option>
+            <option value="default">默认排序</option>
             <option value="priceAsc">价格升序</option>
             <option value="priceDesc">价格降序</option>
             <option value="dateDesc">日期最新</option>
@@ -43,47 +54,55 @@
         <span id="countDisplay"></span>
     </div>
 
-    <div class="product-grid" id="productGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;"></div>
+    <div class="product-grid" id="productGrid"></div>
 </div>
 
 <script src="data.js"></script>
 <script>
-    // 映射：J列是1688link，K列是judge
     const mapData = (arr) => ({
         title: arr[0], variant: arr[1], price: parseFloat(arr[2]), 
         imgUrl: arr[3], link: arr[4], l1: arr[5], l2: arr[6], 
-        inviteId: arr[7], modelId: arr[8], link1688: arr[9], judge: arr[10], date: arr[11]
+        inviteId: arr[7], modelId: arr[8], judge: arr[10], link1688: arr[9], date: arr[11]
     });
 
     function render(dataList) {
         const grid = document.getElementById('productGrid');
         grid.innerHTML = '';
+        document.getElementById('countDisplay').innerText = `共 ${dataList.length} 款`;
+        
         dataList.forEach(arr => {
             const item = mapData(arr);
             const card = document.createElement('div');
             card.className = 'card';
-            // 跳转逻辑：检查链接
+            
             const jump1688 = () => {
-                if (item.link1688 && item.link1688.startsWith('http')) window.open(item.link1688, '_blank');
+                if(item.link1688 && item.link1688.startsWith('http')) window.open(item.link1688, '_blank');
                 else alert('该产品暂无核价链接');
             };
 
             card.innerHTML = `
-                <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" onclick="(${jump1688})()">1688核价: ${item.judge}</div>
+                <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" onclick="(${jump1688})()">${item.judge}</div>
                 <div class="img-container"><img data-src="${item.imgUrl}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>
                 <div class="info">
-                    <div style="font-size:13px; height:40px; overflow:hidden; margin-bottom:10px;">${item.title}</div>
+                    <div class="title">${item.title}</div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span class="price">¥${item.price}</span>
-                        <a href="${item.link}" target="_blank" class="btn-jump">原品链接>>></a>
+                        <a href="${item.link}" target="_blank" class="btn-link">原品>>></a>
                     </div>
                     <div class="invite-id" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('ID已复制')">${item.inviteId}</div>
-                    <div style="font-size:11px; color:#888;">更新日期: ${item.date}</div>
+                    <div style="font-size:10px; color:#999; margin-top:5px;">更新日期: ${item.date}</div>
                 </div>
             `;
             grid.appendChild(card);
         });
+        
+        // 懒加载触发
+        document.querySelectorAll('img').forEach(img => observer.observe(img));
     }
+
+    const observer = new IntersectionObserver(ents => ents.forEach(e => {
+        if(e.isIntersecting) { e.target.src = e.target.dataset.src; observer.unobserve(e.target); }
+    }));
 
     function applyFilters() {
         let filtered = products.filter(arr => {
@@ -103,14 +122,7 @@
         render(filtered);
     }
 
-    window.onload = () => {
-        applyFilters();
-        // 初始化懒加载
-        const obs = new IntersectionObserver(ents => ents.forEach(e => {
-            if(e.isIntersecting) { e.target.src = e.target.dataset.src; obs.unobserve(e.target); }
-        }));
-        document.querySelectorAll('img').forEach(img => obs.observe(img));
-    };
+    window.onload = () => applyFilters();
 </script>
 </body>
 </html>
