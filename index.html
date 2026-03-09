@@ -59,13 +59,19 @@
     const pageSize = 40;
 
     // 核心异步加载逻辑
-    async function loadData() {
-        const res = await fetch('data.csv');
-        const text = await res.text();
-        products = text.split('\n').slice(1).map(line => line.split(','));
-        initFilters();
-        applyFilters();
-    }
+async function loadData() {
+    const res = await fetch('data.csv');
+    const text = await res.text();
+    
+    // 使用正则解析 CSV，自动处理包含引号的字段，防止逗号导致错位
+    const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+    products = text.split('\n').slice(1).map(line => {
+        return line.match(regex)?.map(cell => cell.replace(/^"|"$/g, ''));
+    }).filter(arr => arr && arr.length >= 12); // 过滤空行和不完整行
+    
+    initFilters();
+    applyFilters();
+}
 
     const mapData = (arr) => ({
         title: arr[0], price: parseFloat(arr[2]), imgUrl: arr[3], link: arr[4], 
@@ -145,3 +151,4 @@
 </script>
 </body>
 </html>
+
