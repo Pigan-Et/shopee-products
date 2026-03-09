@@ -59,7 +59,7 @@
         };
     }
 
-    function render(dataList) {
+function render(dataList) {
         const grid = document.getElementById('productGrid');
         grid.innerHTML = '';
         document.getElementById('countDisplay').innerText = `共 ${dataList.length} 款`;
@@ -68,6 +68,7 @@
             const item = mapData(arr);
             const card = document.createElement('div');
             card.className = `card ${item.isFull ? 'full' : ''}`;
+            
             card.innerHTML = `
                 ${item.isFull ? '<div class="full-tag">已满额</div>' : ''}
                 <div class="img-container"><img src="${item.imgUrl}" loading="lazy"></div>
@@ -76,8 +77,11 @@
                     <div class="title">${item.title}</div>
                     <div class="price">目标价: ${item.price}</div>
                     <div class="invite-box">
-                        <div style="font-weight:bold; color:#ee4d2d">${item.inviteId}</div>
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId}')">复制邀请ID</button>
+                        <div style="font-weight:bold; color:#ee4d2d; margin-bottom:5px;">${item.inviteId}</div>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('邀请ID已复制');">复制邀请ID</button>
+                    </div>
+                    <div style="margin-top: 12px; text-align: center;">
+                        <a href="${item.link}" target="_blank" style="color: #ee4d2d; text-decoration: none; font-size: 13px; font-weight: bold;">原品链接 >>></a>
                     </div>
                 </div>
             `;
@@ -126,3 +130,4 @@
 </script>
 </body>
 </html>
+
