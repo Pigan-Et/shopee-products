@@ -15,7 +15,7 @@
         .judge-tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 10; }
         .bg-p0 { background: #d4edda; color: #155724; }
         .bg-p1 { background: #d1ecf1; color: #0c5460; }
-        .img-container { width: 100%; height: 220px; background: #fff; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
+        .img-container { width: 100%; height: 220px; background: #fff; overflow: hidden; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
         .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .info { padding: 15px; flex-grow: 1; }
         .title { font-weight: bold; font-size: 14px; margin-bottom: 10px; height: 40px; overflow: hidden; }
@@ -36,7 +36,7 @@
         <input type="text" id="searchInput" placeholder="搜索标题..." oninput="debouncedFilter()">
         <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">一级类目(全部)</option></select>
         <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
-        <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1</option><option value="P0">P0</option><option value="P1">P1</option></select>
+        <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
         <select id="sortOrder" onchange="applyFilters()">
@@ -52,14 +52,23 @@
     <div style="margin:20px; text-align:center;" id="pagination"></div>
 </div>
 
-<script src="data.js"></script>
 <script>
+    let products = [];
     let filteredData = [];
     let currentPage = 1;
     const pageSize = 40;
 
+    // 核心异步加载逻辑
+    async function loadData() {
+        const res = await fetch('data.csv');
+        const text = await res.text();
+        products = text.split('\n').slice(1).map(line => line.split(','));
+        initFilters();
+        applyFilters();
+    }
+
     const mapData = (arr) => ({
-        title: arr[0], variant: arr[1], price: parseFloat(arr[2]), imgUrl: arr[3], link: arr[4], 
+        title: arr[0], price: parseFloat(arr[2]), imgUrl: arr[3], link: arr[4], 
         l1: arr[5], l2: arr[6], inviteId: arr[7], modelId: arr[8], link1688: arr[9], judge: arr[10], date: arr[11]
     });
 
@@ -70,8 +79,7 @@
         currentPage = page;
         const grid = document.getElementById('productGrid');
         grid.innerHTML = '';
-        const start = (page - 1) * pageSize;
-        dataList.slice(start, start + pageSize).forEach(arr => {
+        dataList.slice((page-1)*pageSize, page*pageSize).forEach(arr => {
             const item = mapData(arr);
             const card = document.createElement('div');
             card.className = 'card';
@@ -86,8 +94,7 @@
                     </div>
                     <div class="invite-id" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('ID已复制')">${item.inviteId}</div>
                     <div style="display:flex; justify-content:space-between; font-size:10px; color:#999; margin-top:10px;">
-                        <span>更新日期: ${item.date}</span>
-                        <span>ModelID: ${item.modelId}</span>
+                        <span>更新: ${item.date}</span><span>ModelID: ${item.modelId}</span>
                     </div>
                 </div>
             `;
@@ -95,6 +102,10 @@
             observer.observe(card.querySelector('img'));
         });
         renderPagination(dataList.length);
+    }
+
+    function initFilters() {
+        [...new Set(products.map(p => p[5]))].forEach(v => document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`);
     }
 
     function updateL2() {
@@ -105,18 +116,14 @@
     }
 
     function applyFilters() {
-        const l1 = document.getElementById('l1Filter').value;
-        const l2 = document.getElementById('l2Filter').value;
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        const p = document.getElementById('pFilter').value;
-        const min = parseFloat(document.getElementById('minPrice').value) || 0;
-        const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+        const l1 = document.getElementById('l1Filter').value, l2 = document.getElementById('l2Filter').value, q = document.getElementById('searchInput').value.toLowerCase(), p = document.getElementById('pFilter').value;
+        const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         
         filteredData = products.filter(arr => {
             const item = mapData(arr);
-            return item.title.toLowerCase().includes(q) && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max);
+            return item.title?.toLowerCase().includes(q) && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max);
         });
-
+        
         const sort = document.getElementById('sortOrder').value;
         if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]);
         else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]);
@@ -134,11 +141,7 @@
 
     const observer = new IntersectionObserver(ents => ents.forEach(e => { if(e.isIntersecting) { e.target.src = e.target.dataset.src; observer.unobserve(e.target); } }));
     
-    window.onload = () => {
-        const l1s = [...new Set(products.map(p => p[5]))];
-        l1s.forEach(v => document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`);
-        applyFilters();
-    };
+    window.onload = loadData;
 </script>
 </body>
 </html>
