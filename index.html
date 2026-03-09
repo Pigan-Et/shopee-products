@@ -9,7 +9,6 @@
         .controls { background: white; padding: 15px; position: sticky; top: 0; z-index: 100; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
         .card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
-        .full { filter: grayscale(100%); opacity: 0.6; }
         .img-container img { width: 100%; height: 200px; object-fit: contain; }
         .copy-btn { background: #ee4d2d; color: white; border: none; padding: 8px; width: 100%; cursor: pointer; }
     </style>
@@ -31,35 +30,34 @@
     let filteredData = products;
 
     function renderBatch() {
-    const grid = document.getElementById('productGrid');
-    const end = Math.min(currentIndex + pageSize, filteredData.length);
-    
-    for (let i = currentIndex; i < end; i++) {
-        const item = filteredData[i];
+        const grid = document.getElementById('productGrid');
+        const end = Math.min(currentIndex + pageSize, filteredData.length);
         
-        // 确保 item 存在
-        if (!item) continue;
-        
-        const card = document.createElement('div');
-        card.className = `card`; 
-        
-        // 使用 || 运算符进行空值兜底
-        card.innerHTML = `
-            <div class="img-container">
-                <img src="${item.imgUrl || 'https://via.placeholder.com/200'}" loading="lazy" onerror="this.src='https://via.placeholder.com/200'">
-            </div>
-            <h4>${item.title || "未知产品"}</h4>
-            <p>价格: ${item.price ?? "面议"} | 规格: ${item.variant || "通用"}</p>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId || ''}'); alert('已复制');">复制邀请ID</button>
-        `;
-        grid.appendChild(card);
+        for (let i = currentIndex; i < end; i++) {
+            const item = filteredData[i];
+            if (!item) continue;
+            
+            const card = document.createElement('div');
+            card.className = 'card'; 
+            
+            card.innerHTML = `
+                <div class="img-container">
+                    <img src="${item.imgUrl || 'https://via.placeholder.com/200'}" loading="lazy" onerror="this.src='https://via.placeholder.com/200'">
+                </div>
+                <h4>${item.title || "未知产品"}</h4>
+                <p>价格: ${item.price ?? "面议"} | 规格: ${item.variant || "通用"}</p>
+                <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId || ''}'); alert('已复制');">复制邀请ID</button>
+            `;
+            grid.appendChild(card);
+        }
+        currentIndex = end;
+        document.getElementById('status').innerText = `已显示 ${currentIndex} / ${filteredData.length} 个产品`;
     }
-    currentIndex = end;
-}
 
     function handleSearch() {
         const keyword = document.getElementById('search').value.toLowerCase();
-        filteredData = products.filter(p => p[0].toLowerCase().includes(keyword));
+        // 修正：使用 p.title 读取对象属性
+        filteredData = products.filter(p => p.title && p.title.toLowerCase().includes(keyword));
         currentIndex = 0;
         document.getElementById('productGrid').innerHTML = '';
         renderBatch();
@@ -74,5 +72,4 @@
     renderBatch(); // 初始加载
 </script>
 </body>
-
 </html>
