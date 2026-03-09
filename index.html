@@ -31,25 +31,31 @@
     let filteredData = products;
 
     function renderBatch() {
-        const grid = document.getElementById('productGrid');
-        const end = Math.min(currentIndex + pageSize, filteredData.length);
+    const grid = document.getElementById('productGrid');
+    const end = Math.min(currentIndex + pageSize, filteredData.length);
+    
+    for (let i = currentIndex; i < end; i++) {
+        const item = filteredData[i];
         
-        for (let i = currentIndex; i < end; i++) {
-            const item = filteredData[i];
-            const isFull = (item[9] === "是" || item[9] === true);
-            const card = document.createElement('div');
-            card.className = `card ${isFull ? 'full' : ''}`;
-            card.innerHTML = `
-                <div class="img-container"><img src="${item[3]}" loading="lazy"></div>
-                <h4>${item[0]}</h4>
-                <p>价格: ${item[2]} | 规格: ${item[1]}</p>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText('${item[7]}'); alert('ID已复制');">复制邀请ID: ${item[7]}</button>
-            `;
-            grid.appendChild(card);
-        }
-        currentIndex = end;
-        document.getElementById('status').innerText = `显示 ${currentIndex} / ${filteredData.length} 个产品`;
+        // 确保 item 存在
+        if (!item) continue;
+        
+        const card = document.createElement('div');
+        card.className = `card`; 
+        
+        // 使用 || 运算符进行空值兜底
+        card.innerHTML = `
+            <div class="img-container">
+                <img src="${item.imgUrl || 'https://via.placeholder.com/200'}" loading="lazy" onerror="this.src='https://via.placeholder.com/200'">
+            </div>
+            <h4>${item.title || "未知产品"}</h4>
+            <p>价格: ${item.price ?? "面议"} | 规格: ${item.variant || "通用"}</p>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId || ''}'); alert('已复制');">复制邀请ID</button>
+        `;
+        grid.appendChild(card);
     }
+    currentIndex = end;
+}
 
     function handleSearch() {
         const keyword = document.getElementById('search').value.toLowerCase();
@@ -68,4 +74,5 @@
     renderBatch(); // 初始加载
 </script>
 </body>
+
 </html>
