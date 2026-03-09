@@ -2,74 +2,127 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>商品列表</title>
+    <title>虾皮全托管-摩配热销原品清单</title>
     <style>
-        .filter-controls { margin: 20px 0; padding: 10px; background: #f4f4f4; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        tr:hover { background-color: #f1f1f1; cursor: pointer; }
+        body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: #ee4d2d; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .card.full { filter: grayscale(100%); opacity: 0.6; }
+        .full-tag { position: absolute; top: 10px; right: 10px; background: #666; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+
+        .img-container { width: 100%; height: 220px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #eee; }
+        .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .info { padding: 15px; flex-grow: 1; }
+        .category-tag { font-size: 11px; color: #ee4d2d; background: #fff5f1; padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
+        .title { font-weight: bold; font-size: 14px; margin-bottom: 5px; height: 40px; overflow: hidden; }
+        .price { color: #ee4d2d; font-size: 18px; font-weight: bold; margin: 12px 0; }
+        .invite-box { background: #fff5f1; padding: 10px; border-radius: 4px; text-align: center; }
+        .copy-btn { background: #ee4d2d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
 
-<div class="filter-controls">
-    <select id="categoryFilter" onchange="applyFilters()">
-        <option value="全部">全部分类</option>
-        <option value="摩托车零配件">摩托车零配件</option>
-        <option value="其他的">其他的</option>
-    </select>
-    <input type="number" id="minPrice" placeholder="最低价" oninput="applyFilters()">
-    <input type="number" id="maxPrice" placeholder="最高价" oninput="applyFilters()">
-    <select id="sortOrder" onchange="applyFilters()">
-        <option value="default">默认排序</option>
-        <option value="asc">价格从低到高</option>
-        <option value="desc">价格从高到低</option>
-    </select>
-</div>
+<div class="container">
+    <header><h1>🏍️ 摩配热销原品清单</h1></header>
 
-<table id="productTable">
-    <thead>
-        <tr>
-            <th>标题</th><th>规格</th><th>价格</th><th>类目</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
+    <div class="filter-section">
+        <select id="l1Filter" onchange="updateL2Options(); applyFilters()"><option value="">一级类目(全部)</option></select>
+        <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
+        <input type="number" id="minPrice" placeholder="最低目标价" oninput="applyFilters()">
+        <input type="number" id="maxPrice" placeholder="最高目标价" oninput="applyFilters()">
+        <select id="sortOrder" onchange="applyFilters()">
+            <option value="default">默认排序</option>
+            <option value="asc">价格从低到高</option>
+            <option value="desc">价格从高到低</option>
+        </select>
+        <span id="countDisplay"></span>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
+</div>
 
 <script src="data.js"></script>
 <script>
-    function renderTable(data) {
-        const body = document.getElementById('tableBody');
-        body.innerHTML = '';
-        data.forEach(item => {
-            const row = body.insertRow();
-            row.onclick = () => window.open(item[4], '_blank'); // item[4] 为链接
-            row.innerHTML = `<td>${item[0]}</td><td>${item[1]}</td><td>${item[2]}</td><td>${item[5]}</td>`;
+    // 映射数组索引到对象属性
+    function mapData(arr) {
+        return {
+            title: arr[0], variant: arr[1], price: parseFloat(arr[2]), 
+            imgUrl: arr[3], link: arr[4], l1: arr[5], l2: arr[6], 
+            inviteId: arr[7], modelId: arr[8], isFull: arr[9] === "是"
+        };
+    }
+
+    function render(dataList) {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+        document.getElementById('countDisplay').innerText = `共 ${dataList.length} 款`;
+        
+        dataList.forEach(arr => {
+            const item = mapData(arr);
+            const card = document.createElement('div');
+            card.className = `card ${item.isFull ? 'full' : ''}`;
+            card.innerHTML = `
+                ${item.isFull ? '<div class="full-tag">已满额</div>' : ''}
+                <div class="img-container"><img src="${item.imgUrl}" loading="lazy"></div>
+                <div class="info">
+                    <div class="category-tag">${item.l1} > ${item.l2}</div>
+                    <div class="title">${item.title}</div>
+                    <div class="price">目标价: ${item.price}</div>
+                    <div class="invite-box">
+                        <div style="font-weight:bold; color:#ee4d2d">${item.inviteId}</div>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.inviteId}')">复制邀请ID</button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
         });
     }
 
     function applyFilters() {
-        let filtered = [...products];
+        let filtered = products.filter(arr => {
+            const item = mapData(arr);
+            const l1 = document.getElementById('l1Filter').value;
+            const l2 = document.getElementById('l2Filter').value;
+            const min = parseFloat(document.getElementById('minPrice').value) || 0;
+            const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+            
+            return (!l1 || item.l1 === l1) && 
+                   (!l2 || item.l2 === l2) && 
+                   (item.price >= min && item.price <= max);
+        });
 
-        // 类目过滤
-        const cat = document.getElementById('categoryFilter').value;
-        if (cat !== "全部") filtered = filtered.filter(p => p[5] === cat);
-
-        // 价格区间
-        const min = parseFloat(document.getElementById('minPrice').value) || 0;
-        const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-        filtered = filtered.filter(p => parseFloat(p[2]) >= min && parseFloat(p[2]) <= max);
-
-        // 排序
         const sort = document.getElementById('sortOrder').value;
         if (sort === 'asc') filtered.sort((a, b) => parseFloat(a[2]) - parseFloat(b[2]));
         if (sort === 'desc') filtered.sort((a, b) => parseFloat(b[2]) - parseFloat(a[2]));
 
-        renderTable(filtered);
+        render(filtered);
     }
 
-    // 初始化渲染
-    renderTable(products);
+    function initFilters() {
+        const l1Select = document.getElementById('l1Filter');
+        const l1s = [...new Set(products.map(p => p[5]))];
+        l1s.forEach(val => l1Select.innerHTML += `<option value="${val}">${val}</option>`);
+    }
+
+    function updateL2Options() {
+        const l1 = document.getElementById('l1Filter').value;
+        const l2Select = document.getElementById('l2Filter');
+        l2Select.innerHTML = '<option value="">二级类目(全部)</option>';
+        const filteredL2s = [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))];
+        filteredL2s.forEach(val => l2Select.innerHTML += `<option value="${val}">${val}</option>`);
+    }
+
+    window.onload = () => {
+        initFilters();
+        render(products);
+    };
 </script>
 </body>
 </html>
