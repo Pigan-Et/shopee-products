@@ -7,29 +7,22 @@
         body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: #ee4d2d; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        /* 说明区域：方便随时修改文字 */
         .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; }
-        
         .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .card { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #eee; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        
-        /* P0/P1 标签 */
         .judge-tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 10; }
         .bg-p0 { background: #d4edda; color: #155724; }
         .bg-p1 { background: #d1ecf1; color: #0c5460; }
-
         .img-container { width: 100%; height: 220px; background: #fff; overflow: hidden; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
         .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        
         .info { padding: 15px; flex-grow: 1; }
         .title { font-weight: bold; font-size: 14px; margin-bottom: 10px; height: 40px; overflow: hidden; }
         .price { color: #ee4d2d; font-size: 22px; font-weight: bold; }
         .btn-link { font-size: 12px; color: #555; text-decoration: underline; cursor: pointer; }
         .invite-id { background: #fff5f1; border: 1px dashed #ee4d2d; padding: 8px; border-radius: 4px; text-align: center; color: #ee4d2d; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .pagination { margin: 20px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -41,10 +34,10 @@
     </header>
 
     <div class="filter-section">
-        <input type="text" id="searchInput" placeholder="搜索标题..." oninput="applyFilters()">
+        <input type="text" id="searchInput" placeholder="搜索标题..." oninput="debouncedFilter()">
         <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
-        <input type="number" id="minPrice" placeholder="最低价" oninput="applyFilters()">
-        <input type="number" id="maxPrice" placeholder="最高价" oninput="applyFilters()">
+        <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
+        <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
         <select id="sortOrder" onchange="applyFilters()">
             <option value="default">默认排序</option>
             <option value="priceAsc">价格升序</option>
@@ -55,31 +48,37 @@
     </div>
 
     <div class="product-grid" id="productGrid"></div>
+    <div class="pagination" id="pagination"></div>
 </div>
 
 <script src="data.js"></script>
 <script>
+    let filteredData = [];
+    let currentPage = 1;
+    const pageSize = 40;
+
     const mapData = (arr) => ({
-        title: arr[0], variant: arr[1], price: parseFloat(arr[2]), 
-        imgUrl: arr[3], link: arr[4], l1: arr[5], l2: arr[6], 
-        inviteId: arr[7], modelId: arr[8], judge: arr[10], link1688: arr[9], date: arr[11]
+        title: arr[0], variant: arr[1], price: parseFloat(arr[2]), imgUrl: arr[3], link: arr[4], l1: arr[5], l2: arr[6], inviteId: arr[7], modelId: arr[8], link1688: arr[9], judge: arr[10], date: arr[11]
     });
 
-    function render(dataList) {
+    // 防抖：防止输入搜索时卡顿
+    let timer;
+    const debouncedFilter = () => { clearTimeout(timer); timer = setTimeout(applyFilters, 300); };
+
+    function render(dataList, page = 1) {
+        currentPage = page;
         const grid = document.getElementById('productGrid');
         grid.innerHTML = '';
-        document.getElementById('countDisplay').innerText = `共 ${dataList.length} 款`;
         
-        dataList.forEach(arr => {
+        const start = (page - 1) * pageSize;
+        const pageData = dataList.slice(start, start + pageSize);
+        
+        pageData.forEach(arr => {
             const item = mapData(arr);
             const card = document.createElement('div');
             card.className = 'card';
+            const jump1688 = () => (item.link1688?.startsWith('http') ? window.open(item.link1688, '_blank') : alert('无核价链接'));
             
-            const jump1688 = () => {
-                if(item.link1688 && item.link1688.startsWith('http')) window.open(item.link1688, '_blank');
-                else alert('该产品暂无核价链接');
-            };
-
             card.innerHTML = `
                 <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" onclick="(${jump1688})()">${item.judge}</div>
                 <div class="img-container"><img data-src="${item.imgUrl}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>
@@ -94,35 +93,46 @@
                 </div>
             `;
             grid.appendChild(card);
+            observer.observe(card.querySelector('img'));
         });
+        renderPagination(dataList.length);
+    }
+
+    function renderPagination(total) {
+        const totalPages = Math.ceil(total / pageSize);
+        const p = document.getElementById('pagination');
+        p.innerHTML = `<button onclick="changePage(-1)" ${currentPage===1?'disabled':''}>上一页</button> 
+                       <span> 第 ${currentPage} / ${totalPages} 页 </span>
+                       <button onclick="changePage(1)" ${currentPage===totalPages?'disabled':''}>下一页</button>`;
+    }
+
+    function changePage(delta) { render(filteredData, currentPage + delta); window.scrollTo(0,0); }
+
+    function applyFilters() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const p = document.getElementById('pFilter').value;
+        const min = parseFloat(document.getElementById('minPrice').value) || 0;
+        const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         
-        // 懒加载触发
-        document.querySelectorAll('img').forEach(img => observer.observe(img));
+        filteredData = products.filter(arr => {
+            const item = mapData(arr);
+            return item.title.toLowerCase().includes(q) && (!p || item.judge === p) && (item.price >= min && item.price <= max);
+        });
+
+        const sort = document.getElementById('sortOrder').value;
+        if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]);
+        else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]);
+        else if (sort === 'dateDesc') filteredData.sort((a,b) => new Date(b[11]) - new Date(a[11]));
+
+        document.getElementById('countDisplay').innerText = `共 ${filteredData.length} 款`;
+        render(filteredData, 1);
     }
 
     const observer = new IntersectionObserver(ents => ents.forEach(e => {
         if(e.isIntersecting) { e.target.src = e.target.dataset.src; observer.unobserve(e.target); }
     }));
 
-    function applyFilters() {
-        let filtered = products.filter(arr => {
-            const item = mapData(arr);
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            const p = document.getElementById('pFilter').value;
-            const min = parseFloat(document.getElementById('minPrice').value) || 0;
-            const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-            return item.title.toLowerCase().includes(q) && (!p || item.judge === p) && (item.price >= min && item.price <= max);
-        });
-
-        const sort = document.getElementById('sortOrder').value;
-        if (sort === 'priceAsc') filtered.sort((a,b) => a[2] - b[2]);
-        if (sort === 'priceDesc') filtered.sort((a,b) => b[2] - a[2]);
-        if (sort === 'dateDesc') filtered.sort((a,b) => new Date(b[11]) - new Date(a[11]));
-
-        render(filtered);
-    }
-
-    window.onload = () => applyFilters();
+    window.onload = applyFilters;
 </script>
 </body>
 </html>
