@@ -73,10 +73,23 @@ async function loadData() {
     applyFilters();
 }
 
-    const mapData = (arr) => ({
-        title: arr[0], price: parseFloat(arr[2]), imgUrl: arr[3], link: arr[4], 
-        l1: arr[5], l2: arr[6], inviteId: arr[7], modelId: arr[8], link1688: arr[9], judge: arr[10], date: arr[11]
-    });
+    const mapData = (arr) => {
+    return {
+        // 直接读取，不做任何 split 或处理
+        title: arr[0] || "",
+        variant: arr[1] || "",
+        price: parseFloat(arr[2]) || 0,
+        imgUrl: arr[3] || "",
+        link: arr[4] || "",
+        l1: arr[5] || "",
+        l2: arr[6] || "",
+        inviteId: arr[7] || "",
+        modelId: arr[8] || "",
+        link1688: arr[9] || "",
+        judge: arr[10] || "",
+        date: arr[11] || ""
+    };
+};
 
     let timer;
     const debouncedFilter = () => { clearTimeout(timer); timer = setTimeout(applyFilters, 300); };
@@ -151,4 +164,5 @@ async function loadData() {
 </script>
 </body>
 </html>
+
 
