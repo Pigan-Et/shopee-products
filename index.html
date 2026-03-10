@@ -37,7 +37,7 @@
         .price { color: #ee4d2d; font-size: 20px; font-weight: bold; flex-shrink: 0; }
         .variant { font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; margin-left: 10px; cursor: help; flex-grow: 1; }
         
-        /* 3.4 邀请ID行 (精简版) */
+        /* 3.4 邀请ID行 */
         .invite-id { font-size: 12px; color: #ee4d2d; font-weight: bold; cursor: pointer; text-decoration: underline; margin-bottom: 15px; display: inline-block; width: fit-content; }
         
         /* 3.5 底部信息行 */
@@ -46,7 +46,7 @@
         .btn-link { color: #0056b3; font-weight: bold; text-decoration: none; cursor: pointer; }
         .btn-link:hover { text-decoration: underline; }
 
-        /* 全屏看图组件 (Modal) */
+        /* 全屏看图组件 */
         #imageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out; }
         #imageModal img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     </style>
@@ -89,7 +89,6 @@
     let currentPage = 1;
     const pageSize = 40;
 
-    // 核心异步加载逻辑 (兼容极复杂符号)
     async function loadData() {
         try {
             const res = await fetch('data.csv');
@@ -120,7 +119,6 @@
         }
     }
 
-    // 数据映射：无损直接读取
     const mapData = (arr) => {
         return {
             title: arr[0] || "",
@@ -138,16 +136,25 @@
         };
     };
 
-    // 独立封装的1688跳转函数，避免HTML内联拼接引号冲突
-    window.open1688 = function(url) {
-        if (url && url.startsWith('http')) {
-            window.open(url, '_blank');
-        } else {
+    // 智能提取 URL 的跳转函数
+    window.open1688 = function(element) {
+        // 从触发点击的元素上获取完整文本
+        const rawText = element.getAttribute('data-url');
+        if (!rawText) {
             alert('❌ 无核价链接');
+            return;
+        }
+
+        // 使用正则提取 http 或 https 开头的网址（遇到空格或中文字符即停止）
+        const urlMatch = rawText.match(/(https?:\/\/[^\s\u4e00-\u9fa5]+)/);
+        
+        if (urlMatch && urlMatch[0]) {
+            window.open(urlMatch[0], '_blank');
+        } else {
+            alert('❌ 提取链接失败或无有效链接');
         }
     };
 
-    // 独立封装的图片双击放大函数
     window.enlargeImage = function(url) {
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImg');
@@ -168,9 +175,14 @@
             const card = document.createElement('div');
             card.className = 'card';
             
-            // 使用反引号构建最新UI结构
+            // HTML结构更新
             card.innerHTML = `
-                <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" onclick="open1688('${item.link1688}')">${item.judge} 1688</div>
+                <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" 
+                     data-url="${item.link1688}" 
+                     onclick="open1688(this)" 
+                     title="点击跳转核价链接">
+                    ${item.judge}
+                </div>
                 
                 <div class="img-container" title="双击放大图片" ondblclick="enlargeImage('${item.imgUrl}')">
                     <img data-src="${item.imgUrl}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
@@ -223,7 +235,6 @@
         
         filteredData = products.filter(arr => {
             const item = mapData(arr);
-            // 搜索标题或型号都能搜出结果
             const searchMatch = item.title?.toLowerCase().includes(q) || item.variant?.toLowerCase().includes(q) || item.inviteId?.toLowerCase().includes(q);
             return searchMatch && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max);
         });
@@ -238,7 +249,7 @@
     }
 
     function renderPagination(total) {
-        const t = Math.ceil(total / pageSize) || 1; // 避免出现0页
+        const t = Math.ceil(total / pageSize) || 1;
         document.getElementById('pagination').innerHTML = `
             <button style="padding:5px 15px; cursor:pointer;" onclick="changePage(-1)" ${currentPage===1?'disabled':''}>上一页</button> 
             <span style="margin:0 15px; font-weight:bold;"> ${currentPage} / ${t} </span> 
@@ -248,7 +259,7 @@
     
     function changePage(d) { 
         render(filteredData, currentPage + d); 
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // 平滑滚动到顶部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     const observer = new IntersectionObserver(ents => ents.forEach(e => { 
