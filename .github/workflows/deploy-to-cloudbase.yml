@@ -26,4 +26,4 @@ jobs:
           ENV_ID: ${{ secrets.TCB_ENV_ID }}
         run: |
           tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
-          tcb hosting deploy ./ / -e "$ENV_ID" --verbose
+          tcb hosting deploy ./ / -e "$ENV_ID" --verbose --ignore '.git'
