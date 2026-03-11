@@ -1,0 +1,27 @@
+name: Deploy to CloudBase Static Hosting
+
+# 触发条件：当你把代码推送到 main 分支时，自动运行
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取你的代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 安装腾讯云的命令行工具 (CloudBase CLI)
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli
+
+      # 3. 用你刚才设置的“暗号”登录腾讯云
+      - name: Login CloudBase CLI
+        run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}
+
+      # 4. 执行部署命令！把你仓库里的所有文件 (./) 部署到腾讯云静态托管的根目录 (/)
+      - name: Deploy to CloudBase Static Hosting
+        run: tcb hosting deploy ./ / -e ${{ secrets.TCB_ENV_ID }}
