@@ -20,13 +20,10 @@ jobs:
         run: npm install -g @cloudbase/cli
 
       - name: Deploy to CloudBase
-  env:
-    SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
-    SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
-    ENV_ID: ${{ secrets.TCB_ENV_ID }}
-  run: |
-    tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
-    echo "当前目录文件列表："
-    ls -la
-    echo "开始部署（详细模式）..."
-    tcb hosting deploy ./ / -e "$ENV_ID" --verbose
+        env:
+          SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+          SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+          ENV_ID: ${{ secrets.TCB_ENV_ID }}
+        run: |
+          tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
+          tcb hosting deploy ./ / -e "$ENV_ID" --verbose
