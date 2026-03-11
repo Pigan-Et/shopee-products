@@ -7,7 +7,7 @@
         body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: #ee4d2d; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; line-height: 1.6; }
+        .desc-box { background: rgba(255,255,255,0.2); padding: 12px; margin-top: 12px; border-radius: 4px; font-size: 14px; line-height: 1.6; }
         .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
         
@@ -51,7 +51,9 @@
         <h1>🏍️ 摩配热销原品清单</h1>
         <div class="desc-box">
             【说明：每日更新核心选品数据，请买手优先关注P0等级及最新日期。】<br>
-            🚀 图片加载需时间，请耐心等待 | 📋 单击邀请ID自动复制<br>
+            🚀 图片加载需时间，请耐心等待<br>
+            📋 单击邀请ID自动复制<br>
+            💹 邀请ID左边为ID下model个数，在搜索框搜索邀请ID，提报所有model，流量翻倍！<br>
             💡 在卖家系统-机会商品-普通爆款搜索【邀请ID】进行提报<br>
             🔗 左上【P0/P1】点击可跳转核价链接，链接不正确可申诉
         </div>
@@ -65,7 +67,7 @@
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
         <select id="sortOrder" onchange="applyFilters()">
-            <option value="default">默认排序(CSV原序)</option>
+            <option value="default">默认排序</option>
             <option value="priceAsc">价格升序</option>
             <option value="priceDesc">价格降序</option>
             <option value="dateDesc">日期最新</option>
@@ -228,3 +230,4 @@
 </script>
 </body>
 </html>
+
