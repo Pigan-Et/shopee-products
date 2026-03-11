@@ -1,4 +1,4 @@
-name: Deploy to CloudBase
+name: Deploy to CloudBase and GitHub Pages
 
 on:
   push:
@@ -19,6 +19,7 @@ jobs:
       - name: Install CloudBase CLI
         run: npm install -g @cloudbase/cli
 
+      # 第一步：部署到腾讯云
       - name: Deploy to CloudBase
         env:
           SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
@@ -28,3 +29,16 @@ jobs:
           tcb login --apiKeyId "$SECRET_ID" --apiKey "$SECRET_KEY"
           rm -rf .git
           tcb hosting deploy ./ / -e "$ENV_ID" --verbose
+
+      # 第二步：部署到 GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'   # 上传整个根目录（包括 index.html、data.csv 等）
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
