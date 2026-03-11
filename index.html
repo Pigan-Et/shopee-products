@@ -164,10 +164,10 @@
                     <img data-src="${item.imgUrl}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 </div>
                 <div class="info">
-                    <div class="title">${item.title}</div>
+                    <div class="title" title="${item.title.replace(/"/g, '&quot;')}">${item.title}</div>
                     <div class="price-variant-row">
                         <span class="price">¥${item.price}</span>
-                        <span class="variant">${item.variant}</span>
+                        <span class="variant" title="${item.variant.replace(/"/g, '&quot;')}">${item.variant}</span>
                     </div>
                     <div class="invite-row">
                         <div class="model-count-tag" title="该Item下共有${item.modelCount}个型号">${item.modelCount}</div>
@@ -230,4 +230,5 @@
 </script>
 </body>
 </html>
+
 
