@@ -7,7 +7,7 @@
         body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: #ee4d2d; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; }
+        .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; line-height: 1.6; }
         .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
         
@@ -24,31 +24,38 @@
         .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
         
         .info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
-        .title { font-weight: bold; font-size: 16px; margin-bottom: 10px; height: 38px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; cursor: help; }
+        .title { font-weight: bold; font-size: 15px; margin-bottom: 10px; height: 38px; line-height: 19px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; cursor: help; }
         .price-variant-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .price { color: #ee4d2d; font-size: 24px; font-weight: bold; flex-shrink: 0; }
-        .variant { font-size: 15px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; margin-left: 10px; cursor: help; flex-grow: 1; }
+        .price { color: #ee4d2d; font-size: 22px; font-weight: bold; flex-shrink: 0; }
+        .variant { font-size: 13px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; margin-left: 10px; cursor: help; flex-grow: 1; }
         
-        /* --- 邀请ID行修改区 --- */
-        .invite-id-box { 
-            border: 2px dashed #ee4d2d; /* 修改虚线颜色和宽度 */
-            padding: 5px;              /* 修改内边距 */
-            margin: 15px 0;             /* 修改与上下元素的间距 */
-            text-align: center;         /* 居中 */
-            font-size: 18px;            /* 字体大小，可调大 */
-            font-weight: bold;          /* 字体粗细 */
-            color: #ee4d2d;             /* 字体颜色 */
-            border-radius: 6px;         /* 圆角 */
-            cursor: pointer;
+        /* --- 邀请ID及数量布局区 --- */
+        .invite-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+        
+        /* 左侧数量标识 */
+        .model-count-tag { 
+            background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322;
+            font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 4px;
+            flex-shrink: 0; height: fit-content;
         }
+        .model-count-tag::before { content: "共"; font-weight: normal; font-size: 10px; margin-right: 2px; }
+        .model-count-tag::after { content: "款"; font-weight: normal; font-size: 10px; margin-left: 2px; }
+
+        /* 邀请ID虚线框 */
+        .invite-id-box { 
+            flex-grow: 1; border: 2px dashed #ee4d2d; padding: 4px;
+            text-align: center; font-size: 16px; font-weight: bold;
+            color: #ee4d2d; border-radius: 6px; cursor: pointer;
+            transition: 0.2s;
+        }
+        .invite-id-box:hover { background: #fff5f5; }
         
         .footer-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; margin-top: auto; }
         .model-id { flex-grow: 1; text-align: center; color: #888; }
         .btn-link { color: #0056b3; font-weight: bold; text-decoration: none; cursor: pointer; }
-        .btn-link:hover { text-decoration: underline; }
 
         #imageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out; }
-        #imageModal img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        #imageModal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -56,15 +63,16 @@
 <div class="container">
     <header>
         <h1>🏍️ 摩配热销原品清单</h1>
-        <div class="desc-box">【说明：每日更新核心选品数据，请买手优先关注P0等级及最新日期。】<br>
-        图片加载需时间，请耐心等待<br>
-        *单击邀请id可自动复制<br>
-            在卖家系统-机会商品-普通爆款搜索【邀请id】进行提报<br>
-        左上【P0】点击可跳转核价链接，链接不正确可申诉</div>
+        <div class="desc-box">
+            【说明：每日更新核心选品数据，请买手优先关注P0等级及最新日期。】<br>
+            🚀 图片加载需时间，请耐心等待 | 📋 单击邀请ID自动复制<br>
+            💡 在卖家系统-机会商品-普通爆款搜索【邀请ID】进行提报<br>
+            🔗 左上【P0/P1】点击可跳转核价链接，链接不正确可申诉
+        </div>
     </header>
 
     <div class="filter-section">
-        <input type="text" id="searchInput" placeholder="搜索标题..." oninput="debouncedFilter()">
+        <input type="text" id="searchInput" placeholder="搜索标题/ID..." oninput="debouncedFilter()">
         <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">一级类目(全部)</option></select>
         <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
         <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
@@ -114,10 +122,21 @@
     }
 
     const mapData = (arr) => ({
-        title: arr[0] || "", variant: arr[1] || "", price: parseFloat(arr[2]) || 0,
-        imgUrl: arr[3] || "", link: arr[4] || "", l1: arr[5] || "",
-        l2: arr[6] || "", inviteId: arr[7] || "", modelId: arr[8] || "",
-        link1688: arr[9] || "", judge: arr[10] || "", date: arr[11] || ""
+        title: arr[0] || "", 
+        variant: arr[1] || "", 
+        price: parseFloat(arr[2]) || 0,
+        imgUrl: arr[3] || "", 
+        link: arr[4] || "", 
+        l1: arr[5] || "",
+        l2: arr[6] || "", 
+        // 自动清洗 ID 中的单引号和科学计数法符号
+        inviteId: (arr[7] || "").replace(/['"+]/g, ''), 
+        modelId: arr[8] || "",
+        link1688: arr[9] || "", 
+        judge: arr[10] || "", 
+        date: arr[11] || "",
+        // 新增列数据读取
+        modelCount: arr[14] || "1" // O列对应索引14
     });
 
     window.open1688 = function(element) {
@@ -149,14 +168,19 @@
                     <img data-src="${item.imgUrl}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 </div>
                 <div class="info">
-                    <div class="title">${item.title}</div>
+                    <div class="title" title="${item.title}">${item.title}</div>
                     <div class="price-variant-row">
                         <span class="price">¥${item.price}</span>
-                        <span class="variant">${item.variant}</span>
+                        <span class="variant" title="${item.variant}">${item.variant}</span>
                     </div>
-                    <div class="invite-id-box" title="点击复制" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('已复制: ${item.inviteId}')">
-                        ${item.inviteId}
+                    
+                    <div class="invite-row">
+                        <div class="model-count-tag" title="该Item下共有${item.modelCount}个型号">${item.modelCount}</div>
+                        <div class="invite-id-box" title="点击复制邀请ID" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('✅ 已复制邀请ID: ${item.inviteId}')">
+                            ${item.inviteId}
+                        </div>
                     </div>
+
                     <div class="footer-row">
                         <span>${item.date}</span>
                         <span class="model-id">${item.modelId}</span>
@@ -170,18 +194,61 @@
         renderPagination(dataList.length);
     }
 
-    // (其余逻辑函数保持不变，无需替换，直接保留原有即可)
-    function initFilters() { [...new Set(products.map(p => p[5]))].forEach(v => document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`); }
-    function updateL2() { const l1 = document.getElementById('l1Filter').value; const l2Select = document.getElementById('l2Filter'); l2Select.innerHTML = '<option value="">二级类目(全部)</option>'; [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].forEach(v => l2Select.innerHTML += `<option value="${v}">${v}</option>`); }
-    function applyFilters() { const l1 = document.getElementById('l1Filter').value, l2 = document.getElementById('l2Filter').value, q = document.getElementById('searchInput').value.toLowerCase(), p = document.getElementById('pFilter').value; const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity; filteredData = products.filter(arr => { const item = mapData(arr); return (item.title.toLowerCase().includes(q) || item.variant.toLowerCase().includes(q) || item.inviteId.toLowerCase().includes(q)) && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max); }); const sort = document.getElementById('sortOrder').value; if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]); else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]); else if (sort === 'dateDesc') filteredData.sort((a,b) => new Date(b[11]) - new Date(a[11])); document.getElementById('countDisplay').innerText = `已筛选：${filteredData.length} 款`; render(filteredData, 1); }
-    function renderPagination(total) { const t = Math.ceil(total / pageSize) || 1; document.getElementById('pagination').innerHTML = `<button onclick="changePage(-1)" ${currentPage===1?'disabled':''}>上一页</button> <span> ${currentPage} / ${t} </span> <button onclick="changePage(1)" ${currentPage===t?'disabled':''}>下一页</button>`; }
+    function initFilters() { 
+        const l1s = [...new Set(products.map(p => p[5]))].filter(v => v);
+        l1s.forEach(v => document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`); 
+    }
+    
+    function updateL2() { 
+        const l1 = document.getElementById('l1Filter').value; 
+        const l2Select = document.getElementById('l2Filter'); 
+        l2Select.innerHTML = '<option value="">二级类目(全部)</option>'; 
+        const l2s = [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].filter(v => v);
+        l2s.forEach(v => l2Select.innerHTML += `<option value="${v}">${v}</option>`); 
+    }
+
+    function applyFilters() { 
+        const l1 = document.getElementById('l1Filter').value, 
+              l2 = document.getElementById('l2Filter').value, 
+              q = document.getElementById('searchInput').value.toLowerCase(), 
+              p = document.getElementById('pFilter').value; 
+        const min = parseFloat(document.getElementById('minPrice').value) || 0, 
+              max = parseFloat(document.getElementById('maxPrice').value) || Infinity; 
+        
+        filteredData = products.filter(arr => { 
+            const item = mapData(arr); 
+            const searchStr = (item.title + item.variant + item.inviteId).toLowerCase();
+            return searchStr.includes(q) && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max); 
+        }); 
+
+        const sort = document.getElementById('sortOrder').value; 
+        if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]); 
+        else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]); 
+        else if (sort === 'dateDesc') filteredData.sort((a,b) => new Date(b[11]) - new Date(a[11])); 
+        
+        document.getElementById('countDisplay').innerText = `已筛选：${filteredData.length} 款`; 
+        render(filteredData, 1); 
+    }
+
+    function renderPagination(total) { 
+        const t = Math.ceil(total / pageSize) || 1; 
+        document.getElementById('pagination').innerHTML = `
+            <button onclick="changePage(-1)" ${currentPage===1?'disabled':''} style="padding:5px 15px; cursor:pointer;">上一页</button> 
+            <span style="margin:0 15px;"> ${currentPage} / ${t} </span> 
+            <button onclick="changePage(1)" ${currentPage===t?'disabled':''} style="padding:5px 15px; cursor:pointer;">下一页</button>
+        `; 
+    }
+
     function changePage(d) { render(filteredData, currentPage + d); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    const observer = new IntersectionObserver(ents => ents.forEach(e => { if(e.isIntersecting) { e.target.src = e.target.dataset.src; observer.unobserve(e.target); } }));
+    
+    const observer = new IntersectionObserver(ents => ents.forEach(e => { 
+        if(e.isIntersecting) { 
+            e.target.src = e.target.dataset.src; 
+            observer.unobserve(e.target); 
+        } 
+    }));
+
     window.onload = loadData;
 </script>
 </body>
 </html>
-
-
-
-
