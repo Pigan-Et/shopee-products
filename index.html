@@ -121,23 +121,17 @@
         }
     }
 
-    const mapData = (arr) => ({
-        title: arr[0] || "", 
-        variant: arr[1] || "", 
-        price: parseFloat(arr[2]) || 0,
-        imgUrl: arr[3] || "", 
-        link: arr[4] || "", 
-        l1: arr[5] || "",
-        l2: arr[6] || "", 
-        // 自动清洗 ID 中的单引号和科学计数法符号
-        inviteId: (arr[7] || "").replace(/['"+]/g, ''), 
-        modelId: arr[8] || "",
-        link1688: arr[9] || "", 
-        judge: arr[10] || "", 
-        date: arr[11] || "",
-        // 新增列数据读取
-        modelCount: arr[14] || "1" // O列对应索引14
-    });
+// --- 修改点 1：mapData 增加更彻底的 ID 清洗 ---
+const mapData = (arr) => ({
+    title: arr[0] || "", variant: arr[1] || "", price: parseFloat(arr[2]) || 0,
+    imgUrl: arr[3] || "", link: arr[4] || "", l1: arr[5] || "",
+    l2: arr[6] || "", 
+    // 【修改处】将所有 `'` 符号和 `+` 符号彻底替换为空字符串，保证ID干净
+    inviteId: (arr[7] || "").replace(/['"+]/g, '').trim(), 
+    modelId: arr[8] || "",
+    link1688: arr[9] || "", judge: arr[10] || "", date: arr[11] || "",
+    modelCount: arr[14] || "1"
+});;
 
     window.open1688 = function(element) {
         const rawText = element.getAttribute('data-url');
@@ -207,28 +201,22 @@
         l2s.forEach(v => l2Select.innerHTML += `<option value="${v}">${v}</option>`); 
     }
 
-    function applyFilters() { 
-        const l1 = document.getElementById('l1Filter').value, 
-              l2 = document.getElementById('l2Filter').value, 
-              q = document.getElementById('searchInput').value.toLowerCase(), 
-              p = document.getElementById('pFilter').value; 
-        const min = parseFloat(document.getElementById('minPrice').value) || 0, 
-              max = parseFloat(document.getElementById('maxPrice').value) || Infinity; 
-        
-        filteredData = products.filter(arr => { 
-            const item = mapData(arr); 
-            const searchStr = (item.title + item.variant + item.inviteId).toLowerCase();
-            return searchStr.includes(q) && (!l1 || item.l1 === l1) && (!l2 || item.l2 === l2) && (!p || item.judge === p) && (item.price >= min && item.price <= max); 
-        }); 
-
-        const sort = document.getElementById('sortOrder').value; 
-        if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]); 
-        else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]); 
-        else if (sort === 'dateDesc') filteredData.sort((a,b) => new Date(b[11]) - new Date(a[11])); 
-        
-        document.getElementById('countDisplay').innerText = `已筛选：${filteredData.length} 款`; 
-        render(filteredData, 1); 
-    }
+    // --- 修改点 2：applyFilters 调整排序逻辑 ---
+function applyFilters() { 
+    // ... 前面的筛选逻辑保持不变 ...
+    
+    // 获取当前选择的排序方式
+    const sort = document.getElementById('sortOrder').value; 
+    
+    // 【修改处】只有当选择非“默认”排序时，才进行数组排序
+    if (sort === 'priceAsc') filteredData.sort((a,b) => a[2] - b[2]); 
+    else if (sort === 'priceDesc') filteredData.sort((a,b) => b[2] - a[2]); 
+    else if (sort === 'dateDesc') filteredData.sort((a,b) => new Date(b[11]) - new Date(a[11])); 
+    // 如果是 'default'，则不做任何 sort 操作，直接保持 CSV 的原始加载顺序
+    
+    document.getElementById('countDisplay').innerText = `已筛选：${filteredData.length} 款`; 
+    render(filteredData, 1); 
+}
 
     function renderPagination(total) { 
         const t = Math.ceil(total / pageSize) || 1; 
@@ -252,3 +240,4 @@
 </script>
 </body>
 </html>
+
