@@ -94,8 +94,8 @@
             <input type="text" id="searchInput" style="width: 250px;" placeholder="在此输入标题或邀请ID搜索..." oninput="debouncedFilter()">
             <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">一级类目(全部)</option></select>
             <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
-            <select id="tagFilter" onchange="applyFilters()"><option value="">特殊属性(全部)</option></select>
             <select id="pFilter" onchange="applyFilters()"><option value="">优先级(全部)</option><option value="P0">P0 (极力推荐)</option><option value="P1">P1 (建议参与)</option></select>
+             <select id="tagFilter" onchange="applyFilters()"><option value="">特殊属性(全部)</option></select>
             <select id="sortOrder" onchange="applyFilters()">
                 <option value="default">默认顺序(最新)</option>
                 <option value="priceAsc">价格从低到高</option>
@@ -232,3 +232,4 @@
 </script>
 </body>
 </html>
+
