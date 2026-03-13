@@ -144,7 +144,7 @@
         
         filteredData = products.filter(arr => {
             const i = mapData(arr);
-            return (i.title.toLowerCase().includes(q) || i.inviteId.includes(q)) &&
+            return (i.title.toLowerCase().includes(q) || i.inviteId.toLowerCase().includes(q)) &&
                    (!l1 || i.l1 === l1) && (!l2 || i.l2 === l2) && (!p || i.judge === p) && 
                    (!tag || i.specialTag === tag) && (i.price >= min && i.price <= max);
         });
@@ -168,3 +168,4 @@
 </script>
 </body>
 </html>
+
