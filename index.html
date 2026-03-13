@@ -66,17 +66,18 @@
             <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
             <select id="pFilter" onchange="applyFilters()"><option value="">优先级(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
             <select id="tagFilter" onchange="applyFilters()"><option value="">特殊属性(全部)</option></select>
+            <select id="sortOrder" onchange="applyFilters()">
+                <option value="default">默认顺序(最新)</option>
+                <option value="priceAsc">价格从低到高</option>
+                <option value="priceDesc">价格从高到低</option>
+            </select>
         </div>
 
         <div class="filter-row">
             <input type="number" id="minPrice" class="price-input" placeholder="最低价" oninput="debouncedFilter()">
             <span>至</span>
             <input type="number" id="maxPrice" class="price-input" placeholder="最高价" oninput="debouncedFilter()">
-            <select id="sortOrder" onchange="applyFilters()">
-                <option value="default">默认顺序(最新)</option>
-                <option value="priceAsc">价格从低到高</option>
-                <option value="priceDesc">价格从高到低</option>
-            </select>
+
             <span id="countDisplay" style="font-weight:bold; color:#ee4d2d; margin-left:auto;"></span>
         </div>
     </div>
@@ -161,3 +162,4 @@
 </script>
 </body>
 </html>
+
