@@ -136,18 +136,23 @@
         currentPage = page; const grid = document.getElementById('productGrid'); grid.innerHTML = '';
         dataList.slice((page-1)*pageSize, page*pageSize).forEach(arr => {
             const item = mapData(arr); const card = document.createElement('div'); card.className = 'card';
-            card.innerHTML = `
-                <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}">${item.judge}</div>
-                ${item.specialTag ? `<div class="special-tag">${item.specialTag}</div>` : ''}
-                <div class="img-container" onclick="document.getElementById('modalImg').src='${item.imgUrl}'; document.getElementById('imageModal').style.display='flex';">
-                    <img src="${item.imgUrl}">
-                </div>
-                <div class="info">
-                    <div class="title">${item.title}</div>
-                    <div class="price">¥${item.price}</div>
-                    <div class="invite-id-box" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('已复制ID: ${item.inviteId}')">${item.inviteId}</div>
-                    <div class="footer-row" style="margin-top:10px;"><span>共${item.modelCount}款</span><a href="${item.link}" target="_blank" class="btn-link">查看原品</a></div>
-                </div>`;
+           
+
+card.innerHTML = `
+    <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}">${item.judge}</div>
+    ${item.specialTag ? `<div class="special-tag">${item.specialTag}</div>` : ''}
+    <div class="img-container" onclick="document.getElementById('modalImg').src='${item.imgUrl}'; document.getElementById('imageModal').style.display='flex';">
+        <img src="${item.imgUrl}">
+    </div>
+    <div class="info">
+        <div class="title">${item.title}</div>
+        <div class="price">¥${item.price}</div>
+        <div class="invite-id-box" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('已复制ID: ${item.inviteId}')">${item.inviteId}</div>
+        <div class="footer-row" style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: #666;">共${item.modelCount}款</span>
+            <a href="${item.link}" target="_blank" class="btn-link">查看原品>>></a>
+        </div>
+    </div>`;
             grid.appendChild(card);
         });
     }
@@ -162,4 +167,5 @@
 </script>
 </body>
 </html>
+
 
