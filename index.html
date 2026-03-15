@@ -168,9 +168,22 @@
     function updateL2() { const l1 = document.getElementById('l1Filter').value; const s = document.getElementById('l2Filter'); s.innerHTML = '<option value="">二级类目(全部)</option>'; [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); }
     let timer; const debouncedFilter = () => { clearTimeout(timer); timer = setTimeout(applyFilters, 300); };
     window.onload = loadData;
+    // Data-Powered Template | Author: Ethan Cai (ethan.cai02@shopee.com)
+// 内部使用，严禁对外转载
 </script>
+<footer style="text-align: center; color: #ccc; font-size: 11px; margin-top: 50px; padding: 20px;">
+    <div>Template Design: Ethan Cai</div>
+    <div style="margin-top:5px;">Disclaimer: This template is for display only. No maintenance provided.</div>
+    <div style="margin-top:5px;">Contact: ethan.cai02@shopee.com</div>
+</footer>
+
+<div id="author-tag" style="display:none; position:fixed; top:20px; right:20px; background:rgba(0,0,0,0.7); color:#fff; padding:10px; border-radius:5px; z-index:9999;">
+    Code by Ethan Cai (ethan.cai02@shopee.com)
+</div>
+<div onclick="document.getElementById('author-tag').style.display='block'" style="position:fixed; bottom:0; right:0; width:20px; height:20px; cursor:pointer;"></div>
 </body>
 </html>
+</div>
 
 
 
