@@ -61,6 +61,20 @@
 <div id="imageModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
 <script>
+    // ================= 核心安全防护 =================
+    // 1. 禁止右键菜单
+    document.oncontextmenu = () => false;
+
+    // 2. 禁止键盘快捷键 (F12, Ctrl+Shift+I, Ctrl+U)
+    document.onkeydown = (e) => {
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.keyCode === 85)) {
+            return false;
+        }
+    };
+
+    // 3. 控制台打印警告（如果对方绕过快捷键打开了控制台，这行会直接打脸）
+    console.log("%c⚠️ 发现非法查看源码行为", "color: red; font-size: 20px; font-weight: bold;");
+    console.log("Designed by Ethan Cai. 复制前请联系原作者。");
     let products = [], filteredData = [], currentPage = 1;
     const pageSize = 40;
     const cleanId = (str) => (str || "").toString().replace(/['"+]/g, '').trim();
