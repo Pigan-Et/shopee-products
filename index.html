@@ -25,8 +25,17 @@
         .bg-p1 { background: #17a2b8; }
         .appeal-btn { background: #fff; border: 1px solid #e67e22; color: #e67e22; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; width: 40px; text-align: center; }
 
-        /* 右上角特殊标签 */
-        .special-tag { position: absolute; top: 10px; right: 10px; background: linear-gradient(90deg, #ff7a18, #e52e71); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; z-index: 10; }
+        /* 右上角多标签系统 (合并流量与特殊标签) */
+        .top-right-tags { position: absolute; top: 10px; right: 10px; z-index: 10; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+        .tag-base { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        /* 流量标签和谐配色方案 */
+        .t-high { background: linear-gradient(90deg, #9D50BB, #6E48AA); color: white; } /* 高价品：高贵紫渐变 */
+        .t-mid { background: linear-gradient(90deg, #36D1DC, #5B86E5); color: white; }  /* 中价品：科技蓝渐变 */
+        .t-low { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; padding: 3px 7px; } /* 低价品：清新淡绿 */
+        
+        /* 原有 P列特殊标签配色 */
+        .t-special { background: linear-gradient(90deg, #ff7a18, #e52e71); color: white; } 
 
         /* 图片区域 */
         .img-container { width: 100%; height: 220px; background: #fff; overflow: hidden; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
@@ -59,6 +68,8 @@
         #imageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out; }
         #imageModal img { max-width: 90%; max-height: 90%; }
         #pagination button { padding: 5px 10px; margin: 0 5px; cursor: pointer; border: 1px solid #ddd; background: white; border-radius: 4px; }
+        .jump-container { display: inline-block; margin-left: 20px; font-size: 14px; }
+        .jump-container input { width: 50px; padding: 4px; text-align: center; margin: 0 5px; }
     </style>
 </head>
 <body>
@@ -66,7 +77,7 @@
     <header>
         <h1>🏍️ 摩配热销原品清单(4月全新热销品下发‼️抓紧提报上车抢占流量🚀🚀🚀</h1>
         <div class="desc-box">
-            💰 每日更新收藏网页保持关注 | 💹 P0级别目标价更优，点击跳转核价链接，非同款可申诉 | 📋 搜索邀请ID提报所有型号，流量翻倍！| 💥新增原品日均销售数据
+            💰 每日上新请收藏关注 | 💹 P0级目标价最优，非同款一键申诉 | 📋 搜邀请ID提报全系型号，基础流量翻倍！| 💥 独家开放原品日销数据 | 💎 重磅流量补贴：低价保底，中价120%，高价直给150%流量霸屏！
         </div>
     </header>
 
@@ -82,6 +93,14 @@
 
         <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">一级类目(全部)</option></select>
         <select id="l2Filter" onchange="applyFilters()"><option value="">二级类目(全部)</option></select>
+        
+        <select id="trafficFilter" onchange="applyFilters()">
+            <option value="">价格段/流量(全部)</option>
+            <option value="高价品">150%流量</option>
+            <option value="中价品">120%流量</option>
+            <option value="低价品">标准流量</option>
+        </select>
+
         <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
         <select id="tagFilter" onchange="applyFilters()"><option value="">特殊标签(全部)</option></select>
         <select id="sortOrder" onchange="applyFilters()">
@@ -91,8 +110,10 @@
             <option value="salesDesc">销售额降序</option>
             <option value="ordersDesc">单量降序</option>
         </select>
+        
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()" style="width:80px">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()" style="width:80px">
+        
         <span id="countDisplay" style="font-weight:bold; color:#ee4d2d; margin-left:auto;"></span>
     </div>
 
@@ -115,7 +136,6 @@
     const pageSize = 40;
     const currentYear = new Date().getFullYear();
 
-    // 逻辑恢复：申诉弹窗与自动复制
     async function openAppealModal(modelId) {
         try {
             await navigator.clipboard.writeText(modelId);
@@ -126,7 +146,6 @@
         window.open(FORM_URL, '_blank');
     }
 
-    // 逻辑恢复：1688 深度链接提取
     function checkAndOpen1688(url) {
         let cleanUrl = url ? url.replace(/['"]/g, '').trim() : "";
         const offerMatch = cleanUrl.match(/https:\/\/detail\.1688\.com\/offer\/\d+\.html/);
@@ -156,25 +175,36 @@
         } catch (e) { console.error("CSV 加载失败", e); }
     }
 
-    // 索引已按 A-R 结构更新 (+1 偏移)
-    const mapData = (arr) => ({
-        modelCount: arr[0] || "1",        // A列
-        title: arr[1],                     // B列
-        variant: arr[2],                   // C列
-        price: parseFloat(arr[3]) || 0,    // D列
-        imgUrl: arr[4],                    // E列
-        link: arr[5],                     // F列
-        l1: arr[6], l2: arr[7],            // G, H列
-        inviteId: cleanId(arr[8]),         // I列
-        modelId: cleanId(arr[9]),          // J列
-        link1688: arr[10],                 // K列
-        judge: arr[11],                    // L列
-        date: cleanId(arr[12]),            // M列
-        specialTag: arr[15] || "",         // P列
-        dailySales: arr[16] || "0",        // Q列
-        dailyOrders: arr[17] || "0",       // R列
-        idx: arr[arr.length - 1]
-    });
+    const mapData = (arr) => {
+        // 解析 S 列 (价格段标签)
+        const trafficRaw = arr[18] ? arr[18].trim() : "";
+        let tText = "", tClass = "";
+        if (trafficRaw === "高价品") { tText = "💎 150%流量"; tClass = "t-high"; }
+        else if (trafficRaw === "中价品") { tText = "🚀 120%流量"; tClass = "t-mid"; }
+        else if (trafficRaw === "低价品") { tText = "🟢 标准流量"; tClass = "t-low"; }
+
+        return {
+            modelCount: arr[0] || "1",        // A列
+            title: arr[1],                    // B列
+            variant: arr[2],                  // C列
+            price: parseFloat(arr[3]) || 0,   // D列
+            imgUrl: arr[4],                   // E列
+            link: arr[5],                     // F列
+            l1: arr[6], l2: arr[7],           // G, H列
+            inviteId: cleanId(arr[8]),        // I列
+            modelId: cleanId(arr[9]),         // J列
+            link1688: arr[10],                // K列
+            judge: arr[11],                   // L列
+            date: cleanId(arr[12]),           // M列
+            specialTag: arr[15] || "",        // P列
+            dailySales: arr[16] || "0",       // Q列
+            dailyOrders: arr[17] || "0",      // R列
+            trafficRaw: trafficRaw,           // S列原始文本
+            trafficText: tText,               // 转化后的标签文本
+            trafficClass: tClass,             // 标签对应的CSS类名
+            idx: arr[arr.length - 1]
+        };
+    };
 
     function render(dataList, page = 1) {
         currentPage = page;
@@ -184,20 +214,31 @@
             const item = mapData(arr);
             const card = document.createElement('div');
             card.className = 'card';
+            
+            // 构建右上角标签组 (S列 + P列)
+            let tagsHtml = `<div class="top-right-tags">`;
+            if (item.trafficText) {
+                tagsHtml += `<div class="tag-base ${item.trafficClass}">${item.trafficText}</div>`;
+            }
+            if (item.specialTag) {
+                tagsHtml += `<div class="tag-base t-special">${item.specialTag}</div>`;
+            }
+            tagsHtml += `</div>`;
+
             card.innerHTML = `
                 <div class="tag-btn-container">
                     <div class="judge-tag ${item.judge === 'P0' ? 'bg-p0' : 'bg-p1'}" onclick="checkAndOpen1688('${item.link1688}')">${item.judge}</div>
                     ${item.judge === 'P0' ? `<button class="appeal-btn" onclick="openAppealModal('${item.modelId}')">申诉</button>` : ''}
                 </div>
-                ${item.specialTag ? `<div class="special-tag">${item.specialTag}</div>` : ''}
+                ${tagsHtml}
                 <div class="img-container" ondblclick="document.getElementById('modalImg').src='${item.imgUrl}'; document.getElementById('imageModal').style.display='flex';">
                     <img src="${item.imgUrl}" loading="lazy">
                 </div>
                 <div class="info">
                     <div class="title" title="${item.title}">${item.title}</div>
                     <div class="performance-row">
-                        <div class="perf-item">💰 销售额: <span class="perf-value">${item.dailySales}</span></div>
-                        <div class="perf-item">📦 单量: <span class="perf-value">${item.dailyOrders}</span></div>
+                        <div class="perf-item">日销售额<span class="perf-value">${item.dailySales}</span></div>
+                        <div class="perf-item">日单量<span class="perf-value">${item.dailyOrders}</span></div>
                     </div>
                     <div class="price-variant-row">
                         <span class="price">¥${item.price}</span>
@@ -220,10 +261,20 @@
 
     function applyFilters() {
         const q = document.getElementById('searchInput').value.toLowerCase();
-        const l1 = document.getElementById('l1Filter').value, l2 = document.getElementById('l2Filter').value;
-        const p = document.getElementById('pFilter').value, tag = document.getElementById('tagFilter').value;
-        const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-        const start = document.getElementById('startDate').value, end = document.getElementById('endDate').value;
+        const l1 = document.getElementById('l1Filter').value;
+        const l2 = document.getElementById('l2Filter').value;
+        const p = document.getElementById('pFilter').value;
+        const tag = document.getElementById('tagFilter').value;
+        const traffic = document.getElementById('trafficFilter').value;
+        
+        // 恢复最低价与最高价的完整逻辑
+        const minVal = document.getElementById('minPrice').value;
+        const maxVal = document.getElementById('maxPrice').value;
+        const min = minVal !== "" ? parseFloat(minVal) : 0;
+        const max = maxVal !== "" ? parseFloat(maxVal) : Infinity;
+        
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
         
         filteredData = products.filter(arr => {
             const i = mapData(arr);
@@ -234,7 +285,14 @@
                 if (start && itemDate < new Date(start)) dateMatch = false;
                 if (end && itemDate > new Date(end)) dateMatch = false;
             }
-            return isMatch && dateMatch && (!l1 || i.l1 === l1) && (!l2 || i.l2 === l2) && (!p || i.judge === p) && (!tag || i.specialTag === tag) && (i.price >= min && i.price <= max);
+            return isMatch 
+                && dateMatch 
+                && (!l1 || i.l1 === l1) 
+                && (!l2 || i.l2 === l2) 
+                && (!traffic || i.trafficRaw === traffic)
+                && (!p || i.judge === p) 
+                && (!tag || i.specialTag === tag) 
+                && (i.price >= min && i.price <= max);
         });
         
         const sort = document.getElementById('sortOrder').value;
@@ -249,28 +307,51 @@
     }
 
     function renderPagination(total) {
-        const totalPages = Math.ceil(total / pageSize);
+        const totalPages = Math.ceil(total / pageSize) || 1;
         const nav = document.getElementById('pagination');
         nav.innerHTML = `
             <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
-            <span style="margin:0 15px;">${currentPage} / ${totalPages || 1}</span>
+            <span style="margin:0 15px;">${currentPage} / ${totalPages}</span>
             <button onclick="changePage(1)" ${currentPage >= totalPages ? 'disabled' : ''}>下一页</button>
+            <div class="jump-container">
+                跳转到 <input type="number" id="pageJumpInput" min="1" max="${totalPages}" value="${currentPage}"> 页
+                <button onclick="jumpToPage(${totalPages})">确定</button>
+            </div>
         `;
     }
 
-    function changePage(delta) { render(filteredData, currentPage + delta); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function changePage(delta) { 
+        render(filteredData, currentPage + delta); 
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    }
+
+    // 新增：页码跳转逻辑
+    function jumpToPage(maxPage) {
+        const inputVal = document.getElementById('pageJumpInput').value;
+        const targetPage = parseInt(inputVal);
+        if (targetPage >= 1 && targetPage <= maxPage) {
+            render(filteredData, targetPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            alert(`请输入有效的页码，范围：1 - ${maxPage}`);
+        }
+    }
+
     function initFilters() {
         const l1s = [...new Set(products.map(p => p[6]))].filter(v => v);
         l1s.forEach(v => { document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
         const tags = [...new Set(products.map(p => p[15]?.trim()))].filter(v => v);
         tags.forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
     }
+
+    // 恢复：原有二级类目联动更新逻辑
     function updateL2() { 
         const l1 = document.getElementById('l1Filter').value; 
         const s = document.getElementById('l2Filter'); 
         s.innerHTML = '<option value="">二级类目(全部)</option>'; 
         [...new Set(products.filter(p => !l1 || p[6] === l1).map(p => p[7]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
     }
+
     let timer; const debouncedFilter = () => { clearTimeout(timer); timer = setTimeout(applyFilters, 300); };
     window.onload = loadData;
 // Data-Powered Template | Author: Ethan Cai (ethan.cai02@shopee.com)
@@ -312,4 +393,3 @@
 </div>
 </body>
 </html>
-</div>
