@@ -169,7 +169,7 @@
                 for (let c of line) { if (c === '"') q = !q; else if (c === ',' && !q) { r.push(cur.trim()); cur = ''; } else cur += c; }
                 r.push(cur.trim()); r.push(index); 
                 return r;
-            }).filter(a => a.length >= 12);
+            }).filter(a => a.join('').trim() !== "");
             initFilters(); 
             applyFilters();
         } catch (e) { console.error("CSV 加载失败", e); }
